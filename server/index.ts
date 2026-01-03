@@ -2,7 +2,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { handleDemo } from "./routes/demo";
-import { getCryptoMarkets } from "./routes/crypto";
+import { getCryptoDetail, getCryptoHistory, getCryptoMarkets } from "./routes/crypto";
 
 export function createServer() {
   const app = express();
@@ -20,6 +20,9 @@ export function createServer() {
 
   app.get("/api/demo", handleDemo);
   app.get("/api/crypto/markets", getCryptoMarkets);
+  app.get("/api/crypto/:id", getCryptoDetail);
+  app.get("/api/crypto/:id/history", getCryptoHistory);
+
 
   return app;
 }

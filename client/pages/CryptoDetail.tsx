@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import Layout from "@/components/Layout";
-import { getCryptocurrencyById, generatePriceHistory, formatPrice, formatCurrency } from "@/utils/mockData";
+import { formatPrice, formatCurrency } from "@/utils/mockData";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { ArrowLeft } from "lucide-react";
 
@@ -9,24 +9,39 @@ type TimeRange = "1D" | "1W" | "1M" | "3M" | "1Y";
 
 export default function CryptoDetail() {
   const { coin } = useParams<{ coin: string }>();
+  const [crypto, setCrypto] = useState<any>(null);
+  const [priceHistory, setPriceHistory] = useState([]);
   const [timeRange, setTimeRange] = useState<TimeRange>("1D");
 
-  const crypto = getCryptocurrencyById(coin || "");
+  const rangeToDays: Record<TimeRange, number> = {
+    "1D": 1,
+    "1W": 7,
+    "1M": 30,
+    "3M": 90,
+    "1Y": 365,
+  };
+  
+  useEffect(() => {
+    fetch(`/api/crypto/${coin}`)
+      .then(res => res.json())
+      .then(setCrypto);
+  }, [coin]);
+
+  useEffect(() => {
+    setPriceHistory([]);
+    fetch(`/api/crypto/${coin}/history?days=${rangeToDays[timeRange]}`)
+      .then(res => res.json())
+      .then(setPriceHistory);
+  }, [coin, timeRange]);
+  
 
   if (!crypto) {
     return (
       <Layout>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
-          <p className="text-lg text-gray-600">Cryptocurrency not found</p>
-          <Link to="/markets/crypto" className="text-tp-blue hover:underline mt-4 inline-block">
-            Back to markets
-          </Link>
-        </div>
+        <p className="text-center py-20">Loading coin data...</p>
       </Layout>
     );
-  }
-
-  const priceHistory = generatePriceHistory(crypto.currentPrice, timeRange);
+  }  
 
   return (
     <Layout>
@@ -46,30 +61,30 @@ export default function CryptoDetail() {
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-tp-blue to-blue-600 flex items-center justify-center">
                 <span className="text-white font-bold text-2xl">
-                  {crypto.symbol[0]}
+                  {crypto?.symbol[0]}
                 </span>
               </div>
               <div>
                 <h1 className="text-3xl sm:text-4xl font-bold text-tp-dark">
-                  {crypto.name}
+                  {crypto?.name}
                 </h1>
-                <p className="text-gray-600">{crypto.symbol}</p>
+                <p className="text-gray-600">{crypto?.symbol}</p>
               </div>
             </div>
 
             <div className="text-right">
               <p className="text-3xl sm:text-4xl font-bold text-tp-dark">
-                {formatPrice(crypto.currentPrice)}
+                {formatPrice(crypto?.currentPrice)}
               </p>
               <p
                 className={`text-lg font-semibold ${
-                  crypto.priceChangePercent24h >= 0
+                  crypto?.priceChangePercent24h >= 0
                     ? "text-tp-green"
                     : "text-tp-red"
                 }`}
               >
-                {crypto.priceChangePercent24h >= 0 ? "+" : ""}
-                {crypto.priceChangePercent24h.toFixed(2)}% (24h)
+                {crypto?.priceChangePercent24h >= 0 ? "+" : ""}
+                {crypto?.priceChangePercent24h.toFixed(2)}% (24h)
               </p>
             </div>
           </div>
@@ -79,19 +94,19 @@ export default function CryptoDetail() {
             <div className="border-t border-gray-200 pt-4">
               <p className="text-sm text-gray-600 mb-1">Current Price</p>
               <p className="text-xl sm:text-2xl font-bold text-tp-dark">
-                {formatPrice(crypto.currentPrice)}
+                {formatPrice(crypto?.currentPrice)}
               </p>
             </div>
             <div className="border-t border-gray-200 pt-4">
               <p className="text-sm text-gray-600 mb-1">Day High</p>
               <p className="text-xl sm:text-2xl font-bold text-tp-green">
-                {formatPrice(crypto.dayHigh)}
+                {formatPrice(crypto?.dayHigh)}
               </p>
             </div>
             <div className="border-t border-gray-200 pt-4">
               <p className="text-sm text-gray-600 mb-1">Day Low</p>
               <p className="text-xl sm:text-2xl font-bold text-tp-red">
-                {formatPrice(crypto.dayLow)}
+                {formatPrice(crypto?.dayLow)}
               </p>
             </div>
           </div>
@@ -125,6 +140,8 @@ export default function CryptoDetail() {
                   dataKey="time"
                   stroke="#9ca3af"
                   style={{ fontSize: "0.875rem" }}
+                  tick={{ fontSize: 12 }}
+                  interval="preserveStartEnd"
                 />
                 <YAxis stroke="#9ca3af" style={{ fontSize: "0.875rem" }} />
                 <Tooltip
@@ -153,13 +170,13 @@ export default function CryptoDetail() {
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <p className="text-sm text-gray-600 mb-2">Market Cap</p>
             <p className="text-2xl font-bold text-tp-dark">
-              {formatCurrency(crypto.marketCap)}
+              {formatCurrency(crypto?.marketCap)}
             </p>
           </div>
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <p className="text-sm text-gray-600 mb-2">24h Volume</p>
             <p className="text-2xl font-bold text-tp-dark">
-              {formatCurrency(crypto.volume24h)}
+              {formatCurrency(crypto?.volume24h)}
             </p>
           </div>
         </div>

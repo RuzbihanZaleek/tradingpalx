@@ -9,18 +9,28 @@ const ITEMS_PER_PAGE = 10;
 export default function CryptoMarket() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [cryptocurrencies, setCryptocurrencies] = useState([]);
+  const [cryptocurrencies, setCryptocurrencies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     fetch("/api/crypto/markets")
-    .then((res) => res.json())
-    .then((data) => {
-      setCryptocurrencies(data);
-      setLoading(false);
-    })
-    .catch(() => setLoading(true));
-  }, [])
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setCryptocurrencies(data);
+        } else {
+          console.error("Invalid crypto data:", data);
+          setCryptocurrencies([]);
+        }
+      })
+      .catch(err => {
+        console.error("Crypto fetch failed", err);
+        setCryptocurrencies([]);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+  
 
   const filteredCoins = useMemo(() => {
     return cryptocurrencies.filter((crypto: any) =>
