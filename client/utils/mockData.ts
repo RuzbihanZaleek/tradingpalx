@@ -202,7 +202,18 @@ export function formatCurrency(value: number): string {
 
 export function formatPrice(price: number): string {
   if (price < 1) {
-    return `$${price.toFixed(4)}`;
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 4,
+      maximumFractionDigits: 4,
+    }).format(price);
   }
-  return `$${price.toFixed(2)}`;
+
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(price);
 }

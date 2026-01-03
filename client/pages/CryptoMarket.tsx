@@ -1,18 +1,64 @@
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
-import { cryptocurrencies, formatPrice } from "@/utils/mockData";
-import { Search } from "lucide-react";
+import { formatPrice } from "@/utils/mockData";
+import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+
+const ITEMS_PER_PAGE = 10;
 
 export default function CryptoMarket() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [cryptocurrencies, setCryptocurrencies] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/crypto/markets")
+    .then((res) => res.json())
+    .then((data) => {
+      setCryptocurrencies(data);
+      setLoading(false);
+    })
+    .catch(() => setLoading(true));
+  }, [])
 
   const filteredCoins = useMemo(() => {
-    return cryptocurrencies.filter((crypto) =>
+    return cryptocurrencies.filter((crypto: any) =>
       crypto.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       crypto.symbol.toLowerCase().includes(searchQuery.toLowerCase())
     );
+  }, [searchQuery, cryptocurrencies]);
+
+  // Reset to page 1 when search changes
+  useMemo(() => {
+    setCurrentPage(1);
   }, [searchQuery]);
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredCoins.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedCoins = filteredCoins.slice(startIndex, endIndex);
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Layout>
+        <p className="text-center py-20">Loading market data...</p>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -42,47 +88,93 @@ export default function CryptoMarket() {
         {/* Coins List */}
         <div className="space-y-3">
           {filteredCoins.length > 0 ? (
-            filteredCoins.map((crypto) => (
-              <Link
-                key={crypto.id}
-                to={`/markets/crypto/${crypto.id}`}
-                className="group"
-              >
-                <div className="bg-white border border-gray-200 rounded-lg p-4 hover:border-tp-blue hover:shadow-md transition-all duration-200">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-gradient-to-br from-tp-blue to-blue-600 flex items-center justify-center">
-                        <span className="text-white font-bold text-lg">
-                          {crypto.symbol[0]}
-                        </span>
+            <>
+              {paginatedCoins.map((crypto) => (
+                <Link
+                  key={crypto.id}
+                  to={`/markets/crypto/${crypto.id}`}
+                  className="group"
+                >
+                  <div className="bg-gradient-to-r from-slate-50 to-blue-50 border border-gray-200 rounded-xl p-5 hover:border-tp-blue hover:shadow-lg transition-all duration-300 hover:from-blue-50 hover:to-slate-50">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4 flex-1 min-w-0">
+                        <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-gradient-to-br from-tp-blue to-blue-600 flex items-center justify-center">
+                          <span className="text-white font-bold text-lg">
+                            {crypto.symbol[0]}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-tp-dark group-hover:text-tp-blue transition-colors">
+                            {crypto.name}
+                          </h3>
+                          <p className="text-sm text-gray-500">{crypto.symbol}</p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-tp-dark group-hover:text-tp-blue transition-colors">
-                          {crypto.name}
-                        </h3>
-                        <p className="text-sm text-gray-500">{crypto.symbol}</p>
-                      </div>
-                    </div>
 
-                    <div className="flex-shrink-0 text-right ml-4">
-                      <p className="font-semibold text-tp-dark">
-                        {formatPrice(crypto.currentPrice)}
-                      </p>
-                      <p
-                        className={`text-sm font-medium ${
-                          crypto.priceChangePercent24h >= 0
-                            ? "text-tp-green"
-                            : "text-tp-red"
-                        }`}
-                      >
-                        {crypto.priceChangePercent24h >= 0 ? "+" : ""}
-                        {crypto.priceChangePercent24h.toFixed(2)}%
-                      </p>
+                      <div className="flex-shrink-0 text-right ml-4">
+                        <p className="font-semibold text-tp-dark">
+                          {formatPrice(crypto.currentPrice)}
+                        </p>
+                        <p
+                          className={`text-sm font-medium ${
+                            crypto.priceChangePercent24h >= 0
+                              ? "text-tp-green"
+                              : "text-tp-red"
+                          }`}
+                        >
+                          {crypto.priceChangePercent24h >= 0 ? "+" : ""}
+                          {crypto.priceChangePercent24h.toFixed(2)}%
+                        </p>
+                      </div>
                     </div>
                   </div>
+                </Link>
+              ))}
+
+              {/* Pagination Controls */}
+              <div className="mt-8 flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  Showing {startIndex + 1} to {Math.min(endIndex, filteredCoins.length)} of{" "}
+                  {filteredCoins.length} cryptocurrencies
                 </div>
-              </Link>
-            ))
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handlePreviousPage}
+                    disabled={currentPage === 1}
+                    className="flex items-center gap-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Previous
+                  </button>
+
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`w-10 h-10 rounded-lg font-semibold transition-colors ${
+                          page === currentPage
+                            ? "bg-tp-blue text-white"
+                            : "border border-gray-300 text-tp-dark hover:bg-gray-50"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={handleNextPage}
+                    disabled={currentPage === totalPages}
+                    className="flex items-center gap-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </>
           ) : (
             <div className="text-center py-12">
               <p className="text-gray-600">No cryptocurrencies found matching "{searchQuery}"</p>
