@@ -15,8 +15,8 @@ export default function CryptoMarket() {
   useEffect(() => {
     setLoading(true);
     fetch("/api/crypto/markets")
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (Array.isArray(data)) {
           setCryptocurrencies(data);
         } else {
@@ -24,18 +24,18 @@ export default function CryptoMarket() {
           setCryptocurrencies([]);
         }
       })
-      .catch(err => {
+      .catch((err) => {
         console.error("Crypto fetch failed", err);
         setCryptocurrencies([]);
       })
       .finally(() => setLoading(false));
   }, []);
-  
 
   const filteredCoins = useMemo(() => {
-    return cryptocurrencies.filter((crypto: any) =>
-      crypto.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      crypto.symbol.toLowerCase().includes(searchQuery.toLowerCase())
+    return cryptocurrencies.filter(
+      (crypto: any) =>
+        crypto.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        crypto.symbol.toLowerCase().includes(searchQuery.toLowerCase()),
     );
   }, [searchQuery, cryptocurrencies]);
 
@@ -103,7 +103,7 @@ export default function CryptoMarket() {
                 <Link
                   key={crypto.id}
                   to={`/markets/crypto/${crypto.id}`}
-                  className="group"
+                  className="group block"
                 >
                   <div className="bg-gradient-to-r from-slate-50 to-blue-50 border border-gray-200 rounded-xl p-5 hover:border-tp-blue hover:shadow-lg transition-all duration-300 hover:from-blue-50 hover:to-slate-50">
                     <div className="flex items-center justify-between">
@@ -117,7 +117,9 @@ export default function CryptoMarket() {
                           <h3 className="font-semibold text-tp-dark group-hover:text-tp-blue transition-colors">
                             {crypto.name}
                           </h3>
-                          <p className="text-sm text-gray-500">{crypto.symbol}</p>
+                          <p className="text-sm text-gray-500">
+                            {crypto.symbol}
+                          </p>
                         </div>
                       </div>
 
@@ -142,42 +144,50 @@ export default function CryptoMarket() {
               ))}
 
               {/* Pagination Controls */}
-              <div className="mt-8 flex items-center justify-between">
-                <div className="text-sm text-gray-600">
-                  Showing {startIndex + 1} to {Math.min(endIndex, filteredCoins.length)} of{" "}
+              <div className="mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                {/* Info Text */}
+                <div className="text-sm text-gray-600 text-center sm:text-left">
+                  Showing {startIndex + 1} to{" "}
+                  {Math.min(endIndex, filteredCoins.length)} of{" "}
                   {filteredCoins.length} cryptocurrencies
                 </div>
 
-                <div className="flex items-center gap-2">
+                {/* Pagination Controls */}
+                <div className="flex flex-wrap justify-center sm:justify-end items-center gap-2">
+                  {/* Previous Button */}
                   <button
                     onClick={handlePreviousPage}
                     disabled={currentPage === 1}
-                    className="flex items-center gap-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="flex items-center gap-1 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     <ChevronLeft className="w-4 h-4" />
                     Previous
                   </button>
 
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`w-10 h-10 rounded-lg font-semibold transition-colors ${
-                          page === currentPage
-                            ? "bg-tp-blue text-white"
-                            : "border border-gray-300 text-tp-dark hover:bg-gray-50"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ))}
+                  {/* Page Numbers */}
+                  <div className="flex flex-wrap justify-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                      (page) => (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          className={`w-10 h-10 rounded-lg font-semibold transition-colors ${
+                            page === currentPage
+                              ? "bg-tp-blue text-white"
+                              : "border border-gray-300 text-tp-dark hover:bg-gray-50"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ),
+                    )}
                   </div>
 
+                  {/* Next Button */}
                   <button
                     onClick={handleNextPage}
                     disabled={currentPage === totalPages}
-                    className="flex items-center gap-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="flex items-center gap-1 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Next
                     <ChevronRight className="w-4 h-4" />
@@ -187,7 +197,9 @@ export default function CryptoMarket() {
             </>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-600">No cryptocurrencies found matching "{searchQuery}"</p>
+              <p className="text-gray-600">
+                No cryptocurrencies found matching "{searchQuery}"
+              </p>
             </div>
           )}
         </div>
