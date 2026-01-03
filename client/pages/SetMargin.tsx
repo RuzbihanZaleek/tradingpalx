@@ -1,18 +1,19 @@
 import { useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import Layout from "@/components/Layout";
-import { getCryptocurrencyById, formatPrice } from "@/utils/mockData";
+import { formatPrice } from "@/utils/mockData";
 import { ArrowLeft } from "lucide-react";
 
 type Direction = "above" | "below";
 
 export default function SetMargin() {
-  const { coin } = useParams<{ coin: string }>();
   const navigate = useNavigate();
   const [margin, setMargin] = useState<string>("");
   const [direction, setDirection] = useState<Direction>("above");
 
-  const crypto = getCryptocurrencyById(coin || "");
+  const location = useLocation();
+  
+  const [crypto] = useState(location.state?.crypto ?? null);
 
   if (!crypto) {
     return (
@@ -107,7 +108,7 @@ export default function SetMargin() {
                 onClick={() => setDirection("above")}
                 className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${
                   direction === "above"
-                    ? "bg-tp-green text-white"
+                    ? "bg-green-600 text-white hover:bg-green-700"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
@@ -117,7 +118,7 @@ export default function SetMargin() {
                 onClick={() => setDirection("below")}
                 className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${
                   direction === "below"
-                    ? "bg-tp-red text-white"
+                    ? "bg-tp-red text-white hover:bg-red-600"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
@@ -143,7 +144,7 @@ export default function SetMargin() {
           <button
             onClick={handleSubmit}
             disabled={!margin || marginValue <= 0}
-            className="w-full py-3 px-6 bg-tp-green text-white font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+            className="w-full py-3 px-6 bg-tp-blue text-white font-semibold rounded-lg hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
             Submit Margin
           </button>

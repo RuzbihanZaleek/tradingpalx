@@ -184,6 +184,7 @@ export default function CryptoDetail() {
         {/* Set Margin Button */}
         <Link
           to={`/markets/crypto/${crypto.id}/set-margin`}
+          state={{ crypto }}
           className="w-full sm:w-auto inline-block px-8 py-3 bg-tp-green text-white font-semibold rounded-lg hover:bg-green-700 transition-colors text-center"
         >
           Set Margin Alert
