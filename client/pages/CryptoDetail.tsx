@@ -4,6 +4,7 @@ import Layout from "@/components/Layout";
 import { formatPrice, formatCurrency } from "@/utils/mockData";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { ArrowLeft } from "lucide-react";
+import { usePriceAlert } from "@/utils/priceAlert";
 
 type TimeRange = "1D" | "1W" | "1M" | "3M" | "1Y";
 
@@ -41,7 +42,9 @@ export default function CryptoDetail() {
         <p className="text-center py-20">Loading coin data...</p>
       </Layout>
     );
-  }  
+  }
+  
+  // usePriceAlert(crypto?.id);
 
   return (
     <Layout>
