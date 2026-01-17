@@ -4,7 +4,6 @@ import Layout from "@/components/Layout";
 import { formatPrice } from "@/utils/mockData";
 import { ArrowLeft } from "lucide-react";
 import { SYMBOLS } from "@/utils/symbols";
-import { sendMessage } from "@/utils/sendMessage";
 
 type Direction = "above" | "below";
 
@@ -57,25 +56,24 @@ useEffect(() => {
       ? (currentCrypto?.currentPrice ?? 0) + marginValue
       : (currentCrypto?.currentPrice ?? 0) - marginValue;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (marginValue <= 0) {
       alert("Please enter a valid margin value");
       return;
     }
 
-    const marginData = {
+    const payload = {
       coinId: crypto.id,
-      coinName: crypto.name,
       coinSymbol: crypto.symbol,
-      currentPrice: currentCrypto?.currentPrice ?? 0,
-      margin: marginValue,
-      direction: direction,
-      alertPrice: alertPrice,
+      alertPrice,
+      direction,
     };
-
-    sessionStorage.setItem("marginData", JSON.stringify(marginData));
-
-    sendMessage(crypto.symbol, alertPrice, direction);
+  
+    await fetch("/api/margins", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
 
     navigate(`/markets/crypto/${crypto.id}/margin-success`);
   };
