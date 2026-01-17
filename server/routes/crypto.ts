@@ -1,68 +1,34 @@
 import { RequestHandler } from "express";
+import { marketState } from "../services/marketState";
 
-export const getCryptoMarkets: RequestHandler = async (_req, res) => {
-  try {
-    const response = await fetch(
-      "https://api.coingecko.com/api/v3/coins/markets" +
-        "?vs_currency=usd" +
-        "&order=market_cap_desc" +
-        "&per_page=50" +
-        "&page=1" +
-        "&sparkline=false" +
-        "&price_change_percentage=24h"
-    );
+export const getCryptoMarkets: RequestHandler = (_req, res) => {
+  const coins = Object.values(marketState);
 
-    if (!response.ok) {
-      return res.status(500).json({ message: "Failed to fetch crypto data" });
-    }
-
-    const data = await response.json();
-
-    // Normalize data for frontend
-    const formatted = data.map((coin: any) => ({
-      id: coin.id,
-      name: coin.name,
-      symbol: coin.symbol.toUpperCase(),
-      currentPrice: coin.current_price,
-      priceChangePercent24h: coin.price_change_percentage_24h,
-    }));
-
-    res.json(formatted);
-  } catch (error) {
-    res.status(500).json({ message: "Crypto API error" });
-  }
+  res.json(coins);
 };
 
 
-export const getCryptoDetail: RequestHandler = async (req, res) => {
+export const getCryptoDetail: RequestHandler = (req, res) => {
   const { id } = req.params;
 
-  try {
-    const response = await fetch(
-      `https://api.coingecko.com/api/v3/coins/${id}` +
-        `?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false`
-    );
+  // Find coin in marketState by id
+  const coin = Object.values(marketState).find(c => c.id === id);
 
-    if (!response.ok) {
-      return res.status(404).json({ message: "Coin not found" });
-    }
-
-    const coin = await response.json();
-
-    res.json({
-      id: coin.id,
-      name: coin.name,
-      symbol: coin.symbol.toUpperCase(),
-      currentPrice: coin.market_data.current_price.usd,
-      priceChangePercent24h: coin.market_data.price_change_percentage_24h,
-      dayHigh: coin.market_data.high_24h.usd,
-      dayLow: coin.market_data.low_24h.usd,
-      marketCap: coin.market_data.market_cap.usd,
-      volume24h: coin.market_data.total_volume.usd,
-    });
-  } catch {
-    res.status(500).json({ message: "Failed to fetch coin data" });
+  if (!coin) {
+    return res.status(404).json({ message: "Coin not found" });
   }
+
+  res.json({
+    id: coin.id,
+    name: coin.name,
+    symbol: coin.symbol.toUpperCase(),
+    currentPrice: coin.currentPrice,
+    priceChangePercent24h: coin.priceChangePercent24h,
+    dayHigh: coin.dayHigh,
+    dayLow: coin.dayLow,
+    marketCap: coin.marketCap ?? 0, 
+    volume24h: coin.volume24h ?? 0,
+  });
 };
 
 export const getCryptoHistory: RequestHandler = async (req, res) => {

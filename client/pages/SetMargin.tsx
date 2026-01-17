@@ -1,19 +1,42 @@
-import { useState } from "react";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, Link, useLocation, useParams } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { formatPrice } from "@/utils/mockData";
 import { ArrowLeft } from "lucide-react";
+import { SYMBOLS } from "@/utils/symbols";
+import { sendMessage } from "@/utils/sendMessage";
 
 type Direction = "above" | "below";
 
 export default function SetMargin() {
   const navigate = useNavigate();
+  const [crypto, setCrypto] = useState<any>(null);
+  const [currentCrypto, setCurrentCrypto] = useState<any>(crypto);
+  const [loading, setLoading] = useState(false);
   const [margin, setMargin] = useState<string>("");
   const [direction, setDirection] = useState<Direction>("above");
 
-  const location = useLocation();
+  const { coin } = useParams<{ coin: string }>();
   
-  const [crypto] = useState(location.state?.crypto ?? null);
+
+useEffect(() => {
+  const symbolConfig = SYMBOLS.find(s => s.id === coin);
+  if (!symbolConfig) return;
+  setCrypto(symbolConfig);
+
+  const fetchCoin = async () => {
+    try {
+      const res = await fetch(`/api/crypto/${symbolConfig.id}`);
+      if (!res.ok) throw new Error("Failed to fetch coin data");
+      const data = await res.json();
+      setCurrentCrypto(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  fetchCoin();
+}, [coin]);
+
 
   if (!crypto) {
     return (
@@ -31,8 +54,8 @@ export default function SetMargin() {
   const marginValue = parseFloat(margin) || 0;
   const alertPrice =
     direction === "above"
-      ? crypto.currentPrice + marginValue
-      : crypto.currentPrice - marginValue;
+      ? (currentCrypto?.currentPrice ?? 0) + marginValue
+      : (currentCrypto?.currentPrice ?? 0) - marginValue;
 
   const handleSubmit = () => {
     if (marginValue <= 0) {
@@ -44,13 +67,16 @@ export default function SetMargin() {
       coinId: crypto.id,
       coinName: crypto.name,
       coinSymbol: crypto.symbol,
-      currentPrice: crypto.currentPrice,
+      currentPrice: currentCrypto?.currentPrice ?? 0,
       margin: marginValue,
       direction: direction,
       alertPrice: alertPrice,
     };
 
     sessionStorage.setItem("marginData", JSON.stringify(marginData));
+
+    sendMessage(crypto.symbol, alertPrice, direction);
+
     navigate(`/markets/crypto/${crypto.id}/margin-success`);
   };
 
@@ -77,7 +103,7 @@ export default function SetMargin() {
           <div className="mb-8 pb-8 border-b border-gray-200">
             <p className="text-sm text-gray-600 mb-2">Current Price of {crypto.symbol}</p>
             <p className="text-3xl sm:text-4xl font-bold text-tp-dark">
-              {formatPrice(crypto.currentPrice)}
+              {loading ? "Loading..." : formatPrice(currentCrypto?.currentPrice)}
             </p>
           </div>
 
@@ -93,9 +119,9 @@ export default function SetMargin() {
               placeholder="Enter margin amount"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-tp-blue focus:border-transparent transition-all"
             />
-            {margin && (
+            {margin && marginValue > 0 && (
               <p className="text-sm text-gray-600 mt-2">
-                You entered: ${parseFloat(margin).toFixed(2)}
+                You entered: ${marginValue.toFixed(2)}
               </p>
             )}
           </div>
@@ -143,7 +169,7 @@ export default function SetMargin() {
           {/* Submit Button */}
           <button
             onClick={handleSubmit}
-            disabled={!margin || marginValue <= 0}
+            disabled={!margin || marginValue <= 0 || loading}
             className="w-full py-3 px-6 bg-tp-blue text-white font-semibold rounded-lg hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
             Submit Margin

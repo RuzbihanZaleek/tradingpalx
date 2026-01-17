@@ -13,23 +13,34 @@ export default function CryptoMarket() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
-    fetch("/api/crypto/markets")
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setCryptocurrencies(data);
-        } else {
-          console.error("Invalid crypto data:", data);
-          setCryptocurrencies([]);
-        }
-      })
-      .catch((err) => {
-        console.error("Crypto fetch failed", err);
-        setCryptocurrencies([]);
-      })
-      .finally(() => setLoading(false));
+    // Function to fetch the crypto markets
+    const fetchMarkets = () => {
+      fetch("/api/crypto/markets")
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setCryptocurrencies(data);
+          } else {
+            console.error("Invalid crypto data:", data);
+          }
+        })
+        .catch((err) => {
+          console.error("Crypto fetch failed", err);
+        });
+    };
+  
+    // Initial fetch
+    fetchMarkets();
+    setLoading(false);
+  
+    // Poll every 2 seconds
+    const interval = setInterval(fetchMarkets, 2000);
+  
+    return () => clearInterval(interval);
   }, []);
+  
+  
+  
 
   const filteredCoins = useMemo(() => {
     return cryptocurrencies.filter(
@@ -62,7 +73,7 @@ export default function CryptoMarket() {
     }
   };
 
-  if (loading) {
+  if (loading && cryptocurrencies.length === 0) {
     return (
       <Layout>
         <p className="text-center py-20">Loading market data...</p>
