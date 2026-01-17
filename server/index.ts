@@ -1,7 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import { getCryptoDetail, getCryptoHistory, getCryptoMarkets } from "./routes/crypto";
+import { getCryptoDetail, getCryptoMarkets } from "./routes/crypto";
 import { startBinanceSocket } from "./services/binanceSocket";
 
 export function createServer() {
@@ -16,7 +16,6 @@ export function createServer() {
 
   app.get("/api/crypto/markets", getCryptoMarkets);
   app.get("/api/crypto/:id", getCryptoDetail);
-  app.get("/api/crypto/:id/history", getCryptoHistory);
 
 
   return app;
