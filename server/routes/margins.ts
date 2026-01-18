@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { marginAlerts, MarginAlert } from "../margins";
+import { startBinanceWatcher } from "../binanceWatcher";
 
 const router = Router();
 
@@ -19,6 +20,7 @@ router.post("/", (req, res) => {
   };
 
   marginAlerts.push(newAlert);
+  startBinanceWatcher();
   res.json({ message: "Margin alert saved", alert: newAlert });
 });
 
