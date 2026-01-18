@@ -8,7 +8,7 @@ import { startBinanceSocket } from "./services/binanceSocket";
 export function createServer() {
   const app = express();
 
-  startBinanceSocket();
+  // startBinanceSocket();
 
   // Middleware
   app.use(cors());
