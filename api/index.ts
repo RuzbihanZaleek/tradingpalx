@@ -1,5 +1,5 @@
 import { createServer } from "../server/index";
 
-// const app = createServer();
+const app = createServer();
 
-// export default app;
+export default app;
