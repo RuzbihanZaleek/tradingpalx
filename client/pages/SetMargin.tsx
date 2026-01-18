@@ -64,6 +64,7 @@ useEffect(() => {
 
     const payload = {
       coinId: crypto.id,
+      coinName: crypto.name,
       coinSymbol: crypto.symbol,
       alertPrice,
       direction,
@@ -74,6 +75,8 @@ useEffect(() => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
+
+    sessionStorage.setItem("marginData", JSON.stringify(payload));
 
     navigate(`/markets/crypto/${crypto.id}/margin-success`);
   };

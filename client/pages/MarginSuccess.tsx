@@ -64,27 +64,27 @@ export default function MarginSuccess() {
               <div>
                 <p className="text-sm text-gray-600 mb-1">Cryptocurrency</p>
                 <p className="text-lg font-semibold text-tp-dark">
-                  {marginData.coinName} ({marginData.coinSymbol})
+                  {marginData?.coinName} ({marginData?.coinSymbol})
                 </p>
               </div>
-              <div>
+              {/* <div>
                 <p className="text-sm text-gray-600 mb-1">Current Price</p>
                 <p className="text-lg font-semibold text-tp-dark">
-                  {formatPrice(marginData.currentPrice)}
+                  {formatPrice(marginData?.currentPrice)}
                 </p>
-              </div>
+              </div> */}
               <div>
                 <p className="text-sm text-gray-600 mb-1">Margin Value</p>
                 <p className="text-lg font-semibold text-tp-dark">
-                  ${marginData.margin.toFixed(2)}
+                  ${marginData?.alertPrice.toFixed(2)}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-600 mb-1">Direction</p>
                 <p className={`text-lg font-semibold ${
-                  marginData.direction === "above" ? "text-tp-green" : "text-tp-red"
+                  marginData?.direction === "above" ? "text-tp-green" : "text-tp-red"
                 }`}>
-                  {marginData.direction === "above" ? "Above" : "Below"}
+                  {marginData?.direction === "above" ? "Above" : "Below"}
                 </p>
               </div>
             </div>
@@ -94,7 +94,7 @@ export default function MarginSuccess() {
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
             <p className="text-sm text-gray-600 mb-2">Alert will be triggered at:</p>
             <p className="text-4xl font-bold text-tp-blue">
-              {formatPrice(marginData.alertPrice)}
+              {formatPrice(marginData?.alertPrice)}
             </p>
           </div>
 
