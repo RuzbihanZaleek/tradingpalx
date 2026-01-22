@@ -1,6 +1,6 @@
 export async function sendAlertToESP(coinSymbol: string, alertPrice: number, direction: "above" | "below") {
     try {
-      await fetch("http://192.168.1.50/alert", {
+      await fetch("http://192.168.43.120/alert", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ coin: coinSymbol, alertPrice, direction }),
